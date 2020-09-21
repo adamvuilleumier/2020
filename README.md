@@ -2,6 +2,4 @@
 
 This repository contains my classwork and independent projects from January 2020 - December 2020
 
-(See report.docx or report.txt for more information)
-
-MAP - 
+(See specs or report.docx in the folders for more information)
