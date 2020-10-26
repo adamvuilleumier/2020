@@ -1,0 +1,2 @@
+This is an independent laboratory project for CS m152a (taken Fall 2020). Our assignment was to use Verilog and the Xilinx ISE to program and test an FPGA that
+converted a 13-bit signed binary input into a 9-bit floating point value.
