@@ -40,9 +40,9 @@ Your task is to implement this functionality. You will need to do the following:
 
     	class Arena
     	{
-    	  …
+    	  â€¦
     	  History& history();
-    	  …
+    	  â€¦
     	};
 
     When a vampire starts its turn poisoned but alive, its Arena's history object must be notified about the position where it started its turn.
@@ -57,7 +57,7 @@ Vampire.cpp 	Player.cpp 	History.cpp 	Arena.cpp 	Game.cpp 	utilities.cpp 	main.c
 
 The zip file itself may be named whatever you like.
 
-If we take these thirteen source files, we must be able to successfully build an executable using g322 and one using either Visual C++ or clang++ — you must not introduce compilation or link errors.
+If we take these thirteen source files, we must be able to successfully build an executable using g322 and one using either Visual C++ or clang++ â€” you must not introduce compilation or link errors.
 
 If you do not follow the requirements in the above paragraphs, your score on this project will be zero. "Do you mean that if I do everything right except misspell a file name or include an extra file or leave off one semicolon, I'll get no points whatsoever?" Yes. That seems harsh, but attention to detail is an important skill in this field. A draconian grading policy certainly encourages you to develop this skill.
 
@@ -69,7 +69,7 @@ To not get a zero on this project, your program must meet these requirements as 
 
     Your program must not use any global variables whose values may change during execution. Global constants (e.g. MAXROWS) are all right.
 
-    Except in Game::play (or a function it calls) and History::display, your program must write no output to cout beyond what is already in the program or is required by this spec. If you want to print things out for debugging purposes, write to cerr instead of cout. When we test your program, we will cause everything written to cerr to be discarded instead — we will never see that output, so you may leave those debugging output statements in your program if you wish.
+    Except in Game::play (or a function it calls) and History::display, your program must write no output to cout beyond what is already in the program or is required by this spec. If you want to print things out for debugging purposes, write to cerr instead of cout. When we test your program, we will cause everything written to cerr to be discarded instead â€” we will never see that output, so you may leave those debugging output statements in your program if you wish.
 
     If we replace your main.cpp file with the following, the program must build successfully under both g32 and either Visual C++ or clang++:
 
@@ -185,7 +185,7 @@ To not get a zero on this project, your program must meet these requirements as 
                 cout << "====" << endl;
             }
 
-    When executed, it must clear the screen (à la Arena::display), and then write the following three lines and no others:
+    When executed, it must clear the screen (Ã  la Arena::display), and then write the following three lines and no others:
 
             .A..    <== This is the first line that must be written.
                     <== This empty line is the second line that must be written.
