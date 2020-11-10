@@ -1,0 +1,5 @@
+This project consists of two bash scripts, buildwords and poornames.
+
+Buildwords uses takes in an HTML webpage and extracts all Hawaiian words from it, sorting them in alphabetical order
+
+Poornames takes in an input directory and an optional recursive (-r) argument and outputs all "poorly named files" within it.
