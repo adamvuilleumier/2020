@@ -1,0 +1,67 @@
+#! /bin/bash
+
+curdir=$pwd 
+o=1
+t=2
+r=false
+
+if [ "$#" -gt "$t" ]; then #cannot have >2 args
+  echo "Error: Too many arguments." >&2
+  exit 1
+fi
+
+if [ "$#" -eq "$t" ]; then  
+    if [ "${1:0:2}" != "-r" ]; then #case where -r isn't first
+	echo "Error: -r must be the first of two arguments" >&2
+	exit 1
+    fi
+    r=true  #else, activate recursion
+    curdir=$2
+fi
+
+if [ "$#" -eq "$o" ]; then
+#handles non-recursive single arg cases and recursive 0 arg cases
+  if [ "${1:0:2}" == "-r" ]; then
+      r=true
+  else
+      curdir=$1
+      firstletter=${curdir:0:1}
+         if [ "${firstletter}" = "-" ]; then
+            echo "Error: First character cannot be '-'." >&2
+            exit 1
+         fi
+  fi
+fi
+
+if [ ! -d ${curdir} ]; then     #makes sure curdir is directory
+  echo "Error: Argument is not a directory." >&2
+  exit 1
+fi
+
+standardPN() #nonrecursive function
+{
+subdirs=$(find $1 -maxdepth 1 -type d)
+
+poor=$(find ${subdirs} | grep -E '^\.{1,2}[A-za-z_-]{1,}|[^A-Za-z\/\._-]{1,}|^-|[A-Za-z\._-]{14,}' | sort -u)
+
+dup=$(find ${subdirs} | grep -E '[A-Za-z\/\._-]{1,14}$' | uniq -id)
+
+echo "$dup"
+echo "$poor"
+}
+
+recursivePN() #recursive function
+{
+    standardPN $1
+
+    lowerdirs=$(find $1 -mindepth 1 -maxdepth 1 -type d)
+    for item in $lowerdirs; do
+	recursivePN ${item}
+    done
+}
+
+if [ "$r" == "true" ]; then
+    recursivePN ${curdir}
+else
+    standardPN ${curdir}
+fi
