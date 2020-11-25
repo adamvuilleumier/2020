@@ -1,0 +1,264 @@
+Command:                                    Description:
+mkdir 35L-a7                                makes project directory
+cd 35L-a7                                   enters project directory
+emacs simpgimp.c                            paste given code into simpgimp.c
+gcc -lgmp simpgimp.c -o simpgimp            builds the program
+
+./simpgimp 24                               outputs 2^24
+./simpgimp 16777216 > bignum.txt            puts 2^(2^24) into bignum.txt
+wc -c bignum.txt                            verifies that there are 5050446 digits (there was an extra char for EOF)
+
+ldd simpgimp                                outputs:
+
+linux-vdso.so.1 =>  (0x00007ffdce1d7000)
+libgmp.so.10 => /lib64/libgmp.so.10 (0x00007f0f66614000)
+libc.so.6 => /lib64/libc.so.6 (0x00007f0f66246000)
+/lib64/ld-linux-x86-64.so.2 (0x00007f0f6688c000)
+
+strace -c ./simpgimp                        outputs:
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+  0.00    0.000000           0         2           read
+  0.00    0.000000           0         1           write
+  0.00    0.000000           0         3           open
+  0.00    0.000000           0         3           close
+  0.00    0.000000           0         3           fstat
+  0.00    0.000000           0         9           mmap
+  0.00    0.000000           0         6           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000000                    32         1 total
+
+The open and access calls are used to call the dynamic linker. Then, libgmp.so.10 and libc.so.6 are loaded using 
+open and mmap calls.
+
+ls /usr/bin | awk '(NR-305098071)%251 == 0'   outputs:
+
+agentxtrap
+coredumpctl
+find
+gvfs-save
+koi8rxterm
+mktextfm
+pamperspective
+plymouth
+quota
+sg_rtpg
+turbostat
+ypmatch
+
+cd ..                                         gets us to main directory
+cd /usr/bin                                   gets us into /usr/bin so we can find these commands
+
+ldd agentxtrap                                outputs:
+
+	linux-vdso.so.1 =>  (0x00007ffe11dfb000)
+        libnetsnmpmibs.so.31 => /lib64/libnetsnmpmibs.so.31 (0x00007f333565d000)
+        libnetsnmpagent.so.31 => /lib64/libnetsnmpagent.so.31 (0x00007f33353ee000)
+        libsensors.so.4 => /lib64/libsensors.so.4 (0x00007f33351df000)
+        librpm.so.3 => /lib64/librpm.so.3 (0x00007f3334f77000)
+        librpmio.so.3 => /lib64/librpmio.so.3 (0x00007f3334d4a000)
+        libnetsnmp.so.31 => /lib64/libnetsnmp.so.31 (0x00007f3334a47000)
+        libwrap.so.0 => /lib64/libwrap.so.0 (0x00007f333483c000)
+        libperl.so => /usr/lib64/perl5/CORE/libperl.so (0x00007f33344ae000)
+        libresolv.so.2 => /lib64/libresolv.so.2 (0x00007f3334294000)
+        libnsl.so.1 => /lib64/libnsl.so.1 (0x00007f333407a000)
+        libdl.so.2 => /lib64/libdl.so.2 (0x00007f3333e76000)
+        libcrypt.so.1 => /lib64/libcrypt.so.1 (0x00007f3333c3f000)
+        libutil.so.1 => /lib64/libutil.so.1 (0x00007f3333a3c000)
+        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f3333820000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f3333452000)
+        libssl.so.10 => /lib64/libssl.so.10 (0x00007f33331e0000)
+        libcrypto.so.10 => /lib64/libcrypto.so.10 (0x00007f3332d7d000)
+        libm.so.6 => /lib64/libm.so.6 (0x00007f3332a7b000)
+        libnss3.so => /lib64/libnss3.so (0x00007f333274c000)
+        libbz2.so.1 => /lib64/libbz2.so.1 (0x00007f333253c000)
+        libz.so.1 => /lib64/libz.so.1 (0x00007f3332326000)
+        libelf.so.1 => /lib64/libelf.so.1 (0x00007f333210e000)
+        liblzma.so.5 => /lib64/liblzma.so.5 (0x00007f3331ee8000)
+        libpopt.so.0 => /lib64/libpopt.so.0 (0x00007f3331cde000)
+        libselinux.so.1 => /lib64/libselinux.so.1 (0x00007f3331ab7000)
+        libcap.so.2 => /lib64/libcap.so.2 (0x00007f33318b2000)
+        libacl.so.1 => /lib64/libacl.so.1 (0x00007f33316a9000)
+        liblua-5.1.so => /lib64/liblua-5.1.so (0x00007f333147b000)
+        libdb-5.3.so => /lib64/libdb-5.3.so (0x00007f33310bd000)
+        libaudit.so.1 => /lib64/libaudit.so.1 (0x00007f3330e94000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f3335b16000)
+        libfreebl3.so => /lib64/libfreebl3.so (0x00007f3330c91000)
+        libgssapi_krb5.so.2 => /lib64/libgssapi_krb5.so.2 (0x00007f3330a44000)
+        libkrb5.so.3 => /lib64/libkrb5.so.3 (0x00007f333075b000)
+        libcom_err.so.2 => /lib64/libcom_err.so.2 (0x00007f3330557000)
+        libk5crypto.so.3 => /lib64/libk5crypto.so.3 (0x00007f3330324000)
+        libnssutil3.so => /lib64/libnssutil3.so (0x00007f33300f4000)
+        libplc4.so => /lib64/libplc4.so (0x00007f332feef000)
+        libplds4.so => /lib64/libplds4.so (0x00007f332fceb000)
+        libnspr4.so => /lib64/libnspr4.so (0x00007f332faad000)
+        libpcre.so.1 => /lib64/libpcre.so.1 (0x00007f332f84b000)
+        libattr.so.1 => /lib64/libattr.so.1 (0x00007f332f646000)
+        libcap-ng.so.0 => /lib64/libcap-ng.so.0 (0x00007f332f440000)
+        libkrb5support.so.0 => /lib64/libkrb5support.so.0 (0x00007f332f230000)
+        libkeyutils.so.1 => /lib64/libkeyutils.so.1 (0x00007f332f02c000)
+        librt.so.1 => /lib64/librt.so.1 (0x00007f332ee24000)
+
+ldd coredumpctl                               outputs:
+
+        linux-vdso.so.1 =>  (0x00007ffcec1f5000)
+        libselinux.so.1 => /lib64/libselinux.so.1 (0x00007f10d798d000)
+        liblzma.so.5 => /lib64/liblzma.so.5 (0x00007f10d7767000)
+        liblz4.so.1 => /lib64/liblz4.so.1 (0x00007f10d7552000)
+        libgcrypt.so.11 => /lib64/libgcrypt.so.11 (0x00007f10d72d1000)
+        libgcc_s.so.1 => /lib64/libgcc_s.so.1 (0x00007f10d70bb000)
+        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f10d6e9f000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f10d6ad1000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f10d7dda000)
+        libpcre.so.1 => /lib64/libpcre.so.1 (0x00007f10d686f000)
+        libdl.so.2 => /lib64/libdl.so.2 (0x00007f10d666b000)
+        libgpg-error.so.0 => /lib64/libgpg-error.so.0 (0x00007f10d6466000)
+
+ldd find                                      outputs:
+
+        linux-vdso.so.1 =>  (0x00007fffaea7f000)
+        libselinux.so.1 => /lib64/libselinux.so.1 (0x00007fb9d5df0000)
+        libm.so.6 => /lib64/libm.so.6 (0x00007fb9d5aee000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007fb9d5720000)
+        libpcre.so.1 => /lib64/libpcre.so.1 (0x00007fb9d54be000)
+        libdl.so.2 => /lib64/libdl.so.2 (0x00007fb9d52ba000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fb9d6017000)
+        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007fb9d509e000)
+
+ldd gvfs-save                                 outputs:
+
+	not a dynamic executable
+
+ldd koi8rxterm                                outputs:
+
+	not a dynamic executable
+
+ldd mktextfm                                  outputs:
+
+	not a dynamic executable
+
+ldd pamperspective                            outputs:
+
+        linux-vdso.so.1 =>  (0x00007fffe75b0000)
+        libnetpbm.so.11 => /lib64/libnetpbm.so.11 (0x00007fb6f7d33000)
+        libm.so.6 => /lib64/libm.so.6 (0x00007fb6f7a31000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007fb6f7663000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fb6f7f73000)
+
+ldd plymouth                                  outputs:
+
+        linux-vdso.so.1 =>  (0x00007ffc07bae000)
+        libply.so.2 => /lib64/libply.so.2 (0x00007f2b7365e000)
+        libm.so.6 => /lib64/libm.so.6 (0x00007f2b7335c000)
+        librt.so.1 => /lib64/librt.so.1 (0x00007f2b73154000)
+        libdl.so.2 => /lib64/libdl.so.2 (0x00007f2b72f50000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f2b72b82000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f2b73a80000)
+        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f2b72966000)
+
+ldd quota                                     outputs:
+
+        linux-vdso.so.1 =>  (0x00007ffc297ed000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f18c3848000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f18c3e2b000)
+
+ldd sg_rtpg                                   outputs:
+
+        linux-vdso.so.1 =>  (0x00007ffdbd1d9000)
+        libsgutils2.so.2 => /lib64/libsgutils2.so.2 (0x00007fe40950e000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007fe409140000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fe40973a000)
+
+ldd turbostat                                 outputs:
+
+        linux-vdso.so.1 =>  (0x00007ffec0355000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f123eb61000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f123ef2f000)
+
+ldd ypmatch                                   outputs:
+
+	ldd: error: you do not have read permission for `./ypmatch'
+
+The only error messages I got were the read permission error for ypmatch (which makes sense as the user must not have 
+privileges to read this file), and the three "not a dynamic executable" errors from fs-save, mktxtfm, and koi8rxterm.
+I suspect that I get these errors because these kinds of files are not compiled with gcc.
+
+cd ~                                           Gets us back to main directory
+
+To get all the outputs of ldd in the same file, I created the following bash script, all-ldd.sh:
+
+#!/bin/sh
+
+for i in $(ls /usr/bin | awk '(NR-305098071)%251 == 0')
+do
+    ldd '/usr/bin/'$i
+done
+
+./all-ldd.sh > lddOutput.txt                  stores output in txt file
+cat lddOutput.txt | grep so | sed 's/=>.*//g' | sort -u    outputs:
+
+	/lib64/ld-linux-x86-64.so.2
+        libacl.so.1
+        libattr.so.1
+        libaudit.so.1
+        libbz2.so.1
+        libcap-ng.so.0
+        libcap.so.2
+        libcom_err.so.2
+        libcrypto.so.10
+        libcrypt.so.1
+        libc.so.6
+        libdb-5.3.so
+        libdl.so.2
+        libelf.so.1
+        libfreebl3.so
+        libgcc_s.so.1
+        libgcrypt.so.11
+        libgpg-error.so.0
+        libgssapi_krb5.so.2
+        libk5crypto.so.3
+        libkeyutils.so.1
+        libkrb5.so.3
+        libkrb5support.so.0
+        liblua-5.1.so
+        liblz4.so.1
+        liblzma.so.5
+        libm.so.6
+        libnetpbm.so.11
+        libnetsnmpagent.so.31
+        libnetsnmpmibs.so.31
+        libnetsnmp.so.31
+        libnsl.so.1
+        libnspr4.so
+        libnss3.so
+        libnssutil3.so
+        libpcre.so.1
+        libperl.so
+        libplc4.so
+        libplds4.so
+        libply.so.2
+        libpopt.so.0
+        libpthread.so.0
+        libresolv.so.2
+        librpmio.so.3
+        librpm.so.3
+        librt.so.1
+        libselinux.so.1
+        libsensors.so.4
+        libsgutils2.so.2
+        libssl.so.10
+        libutil.so.1
+        libwrap.so.0
+        libz.so.1
+        linux-vdso.so.1
+
+
+
+
+

@@ -1,0 +1,121 @@
+Command:                                     Description:
+
+wget -O oldversion https://web.cs.ucla.edu/classes/fall20/cs35L/assign/coreutils-with-bug.tar.gz
+					     downloads buggy version of coreutils
+tar -xzvf oldversion                         untar to directory coreutils-with-bug
+cd coreutils-with-bug                        enters coreutils directory
+./configure --prefix=/u/eng/class/classavu/coreutils-with-bug  
+					     configure (including full pwd!)
+make                                         builds the program
+
+This outputs:
+
+In file included from utimecmp.c:41:
+utimens.h:2:5: error: conflicting types for 'futimens'
+    2 | int futimens (int, char const *, struct timespec const [2]);
+      |     ^~~~~~~~
+In file included from utimecmp.h:25,
+                 from utimecmp.c:25:
+/usr/include/sys/stat.h:373:12: note: previous declaration of 'futimens' was here
+  373 | extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
+      |            ^~~~~~~~
+make[3]: *** [Makefile:659: utimecmp.o] Error 1
+make[3]: Leaving directory '/w/home.09/class/classavu/coreutils-with-bug/lib'
+make[2]: *** [Makefile:414: all] Error 2
+make[2]: Leaving directory '/w/home.09/class/classavu/coreutils-with-bug/lib'
+make[1]: *** [Makefile:419: all-recursive] Error 1
+make[1]: Leaving directory '/w/home.09/class/classavumake/coreutils-with-bug'
+make: *** [Makefile:357: all] Error 2
+
+This is obviously a problem as there is a compilation error for the futimens() function.
+
+cd..                                          reenters main directory
+wget -O patchedversion https://web.cs.ucla.edu/classes/fall20/cs35L/assign/coreutils.diff
+                                              gets the patch from website
+cd coreutils-with-bug                         reenters coreutils directory
+patch -p0 < ~/35L-a5/patchedversion           patches coreutils-with-bug
+./configure --prefix=/u/eng/class/classavu/coreutils-with-bug  
+					     configures patch (including full pwd!)
+make
+make install                                 installs patched version
+
+This renaming patch fixed my problem. The patch renames the errant "futimens" function in 
+question to "coreutils_futimens", which is apparently the proper name for it.
+
+To reproduce the bug:
+
+touch -d '1918-11-11 11:00 GMT' /run/user/$(id -u)/stamp-wwi-armistice
+touch /run/user/$(id -u)/stamp-now
+sleep 1
+touch /run/user/$(id -u)/stamp-now1           all sample timestamps are created
+TZ=UTCO ~/coreutils-with-bug/bin/ls -lt --full-time /run/user/$(id -u)/stamp*
+					      prints out timestamps
+Output of above is:
+-rw-r--r-- 1 classavu class 0 1918-11-11 11:00:00.000000000 +0000 /run/user/15055/stamp-wwi-armistice
+-rw-r--r-- 1 classavu class 0 2020-11-12 18:36:12.563331160 +0000 /run/user/15055/stamp-now1
+-rw-r--r-- 1 classavu class 0 2020-11-12 18:35:44.273253743 +0000 /run/user/15055/stamp-now
+
+gdb ~/coreutils-with-bug/src/ls               enters gdb for the executable
+info functions                                allows me to look at function names
+
+Within the file ls.c are three functions: compare_atime, compare_ctime, compare_mtime. I set breakpoints
+at each of these using the "break" command in gdb.
+
+run -lt					      runs the program, stops at compare_mtime
+
+When I use "step" to iterate through the program, I find the timespec_cmp function called within the 
+cmp_mtime function. I then use "list" to get the following context:
+
+timespec_cmp (struct timespec a, struct timespec b)
+47      {
+48        int diff = a.tv_sec - b.tv_sec;
+49        return diff ? diff : a.tv_nsec - b.tv_nsec;
+50      }
+
+This looks like a case where integer overflow could cause the bug. The output of my "step" command tells
+me that timespec_cmp exists at ../lib/timespec.h.
+
+quit                                           exits gdb
+cd lib                                         enters directory where timespec.h is
+emacs timespec.h                               opens timespec to diagnose problem
+
+The comment for the function in question is /* Return negative, zero, positive if A < B, A == B, A > B, 
+respectively. Assume the nanosecond components are in range, or close to it.  */ I will rewrite this
+function so that it does exactly that.
+
+C-z                                            exits emacs
+cp timespec.h timespec2.h                      creates copy of timespec
+emacs timespec2.h                              edits timespec2 to be the following:
+
+timespec_cmp (struct timespec a, struct timespec b)
+{
+  if(a.tv_sec < b.tv_sec)
+    return -1;
+  else if (a.tv_sec > b.tv_sec)
+    return 1;
+  else
+    return 0;
+}
+
+C-x, C-s, C-z                                   saves timespec2 and exits emacs
+diff -u timespec.h timespec2.h > timespec.diff  creates the diff file
+patch -p0 < timespec.diff                       patches timespec.h
+make                                            compiles the binary
+make install                                    installs new coreutils
+
+To test if new changes fix the bug:
+
+ touch -d '1918-11-11 11:00 GMT' /run/user/$(id -u)/stamp-wwi-armistice
+touch /run/user/$(id -u)/stamp-now
+sleep 1
+touch /run/user/$(id -u)/stamp-now1
+TZ=UTCO ~/coreutils-with-bug/bin/ls -lt --full-time /run/user/$(id -u)/stamp*
+
+Output:
+-rw-r--r-- 1 classavu class 0 2020-11-12 20:33:24.125174168 +0000 /run/user/15055/stamp-now1
+-rw-r--r-- 1 classavu class 0 2020-11-12 20:32:57.241150027 +0000 /run/user/15055/stamp-now
+-rw-r--r-- 1 classavu class 0 1918-11-11 11:00:00.000000000 +0000 /run/user/15055/stamp-wwi-armistice
+
+This is correct! The 1918 date is now at the bottom of the output.
+
+

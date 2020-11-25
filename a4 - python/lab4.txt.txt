@@ -1,0 +1,34 @@
+Command:                                  Result:
+ 
+/usr/bin/ls --version                     Gets version of Coreutils: 8.22
+mkdir and cd 35L-a4                       Makes directory and enters it
+touch .foo, .bar, foobar                  Creates sample files
+/usr/bin/ls -A -a                         Outputs all files, including unwanted . and .., verification complete
+
+I now downloaded the coreutils tarball, its signature, and the GNU keyring and put them in my 35L-a4 directory using Filezilla.
+
+gpg --verify --keyring ./gnu-keyring.gpg coreutils-8.29.tar.xz.sig   Verifies signature -
+
+gpg outputs a warning that this key is not certified with a trusted signature. I suspect that this is an issue because Padraig
+Brady, the source of the signature, has not yet been verified by the Certification Authority.
+
+tar -zJvf coreutils-8.29.tar.xz            Extracts the source code from tarball
+cd coreutils-8.29                          Enters newly made directory
+./configure --prefix="/35L-a4/coreutils-8.29/configure/"    Compiles and installs coreutils into coreutils-8.29 directory
+make                                       Compiles the c code in coreutils-8.29
+make install                               Installs the programs
+cd ~                                       Moves to home directory
+mv 35L-a4/coreutils-8.29 ~/coreutils-8.29  Moves coreutils file to home directory
+coreutils-8.29/src/ls -Aa                  Outputs all files in home directory, including . and .. (a overrides A)
+
+wget -O bugpatch.diff https://debbugs.gnu.org/cgi/bugreport.cgi?msg=10;bug=30963;att=1;filename=0001-ls-A-now-overrides-a.patch
+					  Gets patch from webpage linked in lab, saves as bugpatch
+
+cd coreutils-8.29                         Get into coreutils directory so it is stdin
+patch -p1 coreutils-8.29/src/ls.c  bugfix.diff   Applies the patch to coreutils ls
+autoreconf --force --install              We need this command to reconfigure the already made previous version
+make                                      Compiles the patched coreutils
+make install                              Reinstalls the new package
+
+cd ~                                      Enter home directory
+coreutils-8.29/src/ls -Aa                 Now the output does not include . and .. , bug fixed!

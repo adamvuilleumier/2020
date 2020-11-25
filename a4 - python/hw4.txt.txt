@@ -1,0 +1,32 @@
+Q1. The patched version of ls behaves more predictably than the original version. Now, the order of
+    arguments given determines the output instead of -a always overriding -A. The time efficiency of
+    the two versions is roughly the same, however, as there were no extra loops added in the patch.
+
+Q2. If people were using the buggy version of ls and expecting to always see . and .. when giving it
+    -a and -A as arguments, we would need to update this code to only include the desired argument.
+
+Q3. When I call randline on /dev/null , it outputs the following:
+  Traceback (most recent call last):
+  File "randline", line 70, in <module>
+    main()
+  File "randline", line 64, in main
+    sys.stdout.write(generator.chooseline())
+  File "randline", line 34, in chooseline
+    return random.choice(self.lines)
+  File "/usr/local/cs/Python-2.7.18/lib/python2.7/random.py", line 277, in choice
+    return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
+ IndexError: list index out of range
+    It outputs this because the function chooseline() calls random.choice() with argument self.lines.
+    Self.lines is empty because the input file is empty, and this throws an error.
+
+Q4. When we invoke the script with Python 3, we get the following:
+  File "/w/home.09/class/classavu/randline", line 65
+    except IOError as (errno, strerror):
+                      ^
+  SyntaxError: invalid syntax
+    This is because Python 3 has different syntax than Python 2. The new way of coding this line is:
+	except IOError as error:
+		errno, strerror = error.args
+
+Q5. If shuf.py is invoked with python2, the script still compiles and runs as expected. This is because all
+    the syntax I used in this program is valid python2 syntax as well.

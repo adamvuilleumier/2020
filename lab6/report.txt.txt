@@ -1,0 +1,237 @@
+Command:                                  Description:
+mkdir 35L-a6                              makes project directory
+cd 35L-a6                                 enters project directory
+emacs tr2b.c                              makes the buffered file
+emacs tr2u.c                              makes the unbuffered version
+
+To test these two C programs, I created a file full of 5 million random chars using the following
+Python script randomString.py and the command "python3 randomString.py > bigfile.txt". This is the
+randomString.py script:
+
+#!/usr/bin/python3
+
+import random
+import string
+
+letters = string.ascii_lowercase
+result_str = ''.join(random.choice(letters) for i in range(5000000))
+print(result_str)
+
+gcc -o tr2b tr2b.c                       creates executable for tr2b.c
+gcc -o tr2u tr2u.c			 creates executable for tr2u.c
+
+strace -c ./tr2b 'a' 'b' < bigfile.txt > tr2b_out :
+
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 60.65    0.000581           0       611           write
+ 26.93    0.000258           0       613           read
+  3.97    0.000038           4         9           mmap
+  2.51    0.000024           6         4           mprotect
+  1.67    0.000016           4         4           fstat
+  1.36    0.000013           6         2           open
+  0.94    0.000009           9         1           munmap
+  0.63    0.000006           6         1         1 access
+  0.52    0.000005           2         2           close
+  0.42    0.000004           4         1           execve
+  0.21    0.000002           2         1           brk
+  0.21    0.000002           2         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000958                  1250         1 total
+
+
+strace -c ./tr2u 'a' 'b' < bigfile.txt > tr2u_out :
+
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.10   19.071432           3   5000001           write
+ 42.90   14.328942           2   5000003           read
+  0.00    0.000033           4         7           mmap
+  0.00    0.000023           5         4           mprotect
+  0.00    0.000013           6         2           open
+  0.00    0.000009           9         1           munmap
+  0.00    0.000006           3         2           fstat
+  0.00    0.000006           6         1         1 access
+  0.00    0.000004           2         2           close
+  0.00    0.000004           4         1           execve
+  0.00    0.000003           3         1           brk
+  0.00    0.000002           2         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   33.400477              10000026         1 total
+
+strace -c ./tr2b 'a' 'b' < bigfile.txt :
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 92.77    0.017565           3      4883           write
+  7.23    0.001369           2       613           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0         9           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.018934                  5522         1 total
+
+strace -c ./tr2u 'a' 'b' < bigfile.txt :
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 56.73   22.593223           4   5000001           write
+ 43.27   17.231082           3   5000003           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         2           fstat
+  0.00    0.000000           0         7           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   39.824305              10000026         1 total
+
+time ./tr2b 'a' 'b' < bigfile.txt :
+
+real    0m2.336s
+user    0m0.164s
+sys     0m0.029s
+
+time ./tr2b 'a' 'b' < bigfile.txt :
+
+real    0m15.218s
+user    0m3.139s
+sys     0m9.885s
+
+From the time and strace commands, I found that the buffered version of tr takes SIGNIFICANTLY less time and
+fewer system calls than the unbuffered version that reads in single chars at a time. This is because
+library functions like getchar() and putchar() optimize the numbers of read and write system calls so that
+the process is more efficient. In the future, I will know to use these library functions in favor of the pure
+system call if possible.
+
+Additionally, when we copy the output to a file versus the terminal, at least in the buffered version, there were
+far fewer write system calls when we don't print to terminal. In the future, I will always try to output large 
+outputs to another file.
+
+-----------------------------------------------------------------------------------------------------------------
+
+sfrob vs. sfrobu comparison:
+
+I first used the time command on the two functions using the bigfile I created earlier in the lab:
+
+time ./sfrob < bigfile.txt > out.txt :
+
+real    0m0.146s
+user    0m0.127s
+sys     0m0.011s
+
+time ./sfrobu < bigfile.txt > out.txt :
+
+real    0m13.900s
+user    0m3.286s
+sys     0m10.525s
+
+What I gain from this initial test is that the unbuffered version is significantly slower than the buffered version,
+as to be expected based on the conclusions from the lab.
+
+To create input files of length 0, 100, 10000, and 1000000 lines, I edited the python script that I described above :
+
+#!/usr/bin/python3
+
+import random
+import string
+
+letters = string.ascii_lowercase
+for b in range(N):                     //where N is desired number of lines
+    result_str = ''.join(random.choice(letters) for i in range(20))
+    print(result_str, end='\n')
+
+I redirected the output of this program into 4 .txt files: zerol, hundredl, tthousl, mill. I then ran the following
+time commands :
+
+time ./sfrobu < zerol.txt > out.txt
+time ./sfrobu < hundredl.txt > out.txt
+time ./sfrobu < tthousl.txt > out.txt
+time ./sfrobu < mill.txt > out.txt
+
+To determine the CPU time as a function of number of input lines, I made the following table:
+
+# of lines    |  sys time (s)
+-----------------------------
+0             |   0.003
+100           |   0.005
+10000         |   0.446
+1000000       |   44.227
+
+Since the time complexity of qsort is nlog(n), I will try to model my CPU time function according to the form
+T(n) = K * nlog(n). To find K, I plug in the pair (100, 0.005) :
+
+0.005 = K * 100 * log(100)
+   K = 2.5 x 10^-5
+
+To verify, we plug in 10000 and 1000000 to the equation in hopes of getting 0.446 and 44.227 :
+
+2.5 x 10^-5 * 10000 * log(10000)   =  1  (off by only a factor of 2)
+2.5 x 10^-5 * 1000000 * log(1000000)  =  150 (off by a factor of 1/3)
+
+Since both of these instances correctly predict the sys time within a factor of 10, I will call this function
+good enough to use for approximation: T(n) = (2.5 x 10^-5) * nlog(n)
+
+To get more information about the system calls and arguments sfrobu uses, I tried the following strace commands:
+
+strace -c ./sfrobu < hundredl.txt > out.txt
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 59.03    0.008978           4      2101           write
+ 40.97    0.006232           2      2102           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         3           fstat
+  0.00    0.000000           0         7           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         4           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.015210                  4229         1 total
+
+strace -c ./sfrobu < tthousl.txt > out.txt
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.71    0.836413           3    210001           write
+ 42.28    0.612844           2    210002           read
+  0.00    0.000044          22         2           munmap
+  0.00    0.000026           3         8           mmap
+  0.00    0.000017           4         4           mprotect
+  0.00    0.000013          13         1           mremap
+  0.00    0.000010           2         4           brk
+  0.00    0.000006           2         3           fstat
+  0.00    0.000002           2         1           arch_prctl
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    1.449375                420032         1 total
+
+From these two outputs, I can see that when the line input gets bigger, the number of munmap, mmap, and mremap
+system calls increase. This signals that these system calls may be used to allocate memory.
+
+I read the manual for these system calls and mmap, for example, uses the arguments: address, length, prot, 
+flags, fd, and offset. These presumably tell the function which memory address to allocate for what.
+
+
+
+
